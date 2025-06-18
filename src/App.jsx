@@ -1,123 +1,87 @@
+
 import React, { useState, useEffect } from "react";
 import Papa from "papaparse";
 import logo from "./assets/C_logo.png";
-import background from "./assets/background.jpg";
+import "./index.css";
 
 function App() {
   const [guestList, setGuestList] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [checkedIn, setCheckedIn] = useState({});
-  const [showForm, setShowForm] = useState(false);
-  const [newGuestName, setNewGuestName] = useState("");
-
-  useEffect(() => {
-    const storedCheckins = localStorage.getItem("checkedIn");
-    if (storedCheckins) {
-      setCheckedIn(JSON.parse(storedCheckins));
-    }
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem("checkedIn", JSON.stringify(checkedIn));
-  }, [checkedIn]);
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
+    if (!file) return;
+
     Papa.parse(file, {
       header: true,
       skipEmptyLines: true,
       complete: function (results) {
-        const guests = results.data.map((row, index) => ({
-          id: row.ID || index,
-          Name: row.Name?.trim(),
+        const formattedData = results.data.map((row) => ({
+          firstName: row.FirstName?.trim(),
+          lastName: row.LastName?.trim(),
+          email: row.Email?.trim(),
+          checkedIn: false,
           manual: false
         }));
-        setGuestList(guests);
+        setGuestList(formattedData);
       },
     });
   };
 
-  const handleCheckIn = (id) => {
-    setCheckedIn((prev) => {
-      const newCheckIn = { ...prev, [id]: !prev[id] };
-      localStorage.setItem("checkedIn", JSON.stringify(newCheckIn));
-      return newCheckIn;
-    });
+  const toggleCheckIn = (index) => {
+    const updatedList = [...guestList];
+    updatedList[index].checkedIn = !updatedList[index].checkedIn;
+    setGuestList(updatedList);
+  };
+
+  const addManualGuest = () => {
+    const firstName = prompt("Enter first name:");
+    const lastName = prompt("Enter last name:");
+    if (firstName && lastName) {
+      const newGuest = {
+        firstName,
+        lastName,
+        email: \`\${firstName.toLowerCase()}.\${lastName.toLowerCase()}@manual.com\`,
+        checkedIn: false,
+        manual: true
+      };
+      setGuestList([...guestList, newGuest]);
+    }
   };
 
   const filteredGuests = guestList.filter((guest) =>
-    guest.Name.toLowerCase().includes(searchTerm.toLowerCase())
+    \`\${guest.firstName} \${guest.lastName}\`.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleAddGuest = () => {
-    if (!newGuestName.trim()) return;
-    const newGuest = {
-      id: `manual-${Date.now()}`,
-      Name: newGuestName.trim(),
-      manual: true,
-    };
-    setGuestList((prev) => [...prev, newGuest]);
-    setNewGuestName("");
-    setShowForm(false);
-  };
+  const checkedInCount = guestList.filter((g) => g.checkedIn).length;
+  const attendanceRate = guestList.length ? ((checkedInCount / guestList.length) * 100).toFixed(1) : 0;
 
   return (
-    <div
-      className="app-container"
-      style={{
-        backgroundImage: `url(${background})`,
-      }}
-    >
-      <div className="overlay">
-        <img src={logo} alt="Logo" className="logo" />
-        <h1 className="title">Guest Check-In</h1>
-
-        <input
-          type="file"
-          accept=".csv"
-          onChange={handleFileUpload}
-          className="file-upload"
-        />
+    <div className="container">
+      <img src={logo} alt="Convene Logo" className="logo" />
+      <h1>Guest Check-In</h1>
+      <div className="controls">
+        <input type="file" accept=".csv" onChange={handleFileUpload} />
         <input
           type="text"
           placeholder="Search name..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="search-bar"
         />
-
-        <div className="guest-list">
-          {filteredGuests.map((guest) => (
-            <div
-              key={guest.id}
-              className={`guest-item ${checkedIn[guest.id] ? "checked-in" : ""}`}
-              onClick={() => handleCheckIn(guest.id)}
-            >
-              {guest.Name}
-              {guest.manual && <span className="manual-tag">Manual Entry</span>}
-            </div>
-          ))}
-        </div>
-
-        <button className="add-btn" onClick={() => setShowForm(true)}>
-          +
-        </button>
-
-        {showForm && (
-          <div className="modal">
-            <div className="modal-content">
-              <input
-                type="text"
-                placeholder="Enter guest name"
-                value={newGuestName}
-                onChange={(e) => setNewGuestName(e.target.value)}
-              />
-              <button onClick={handleAddGuest}>Add Guest</button>
-              <button onClick={() => setShowForm(false)}>Cancel</button>
-            </div>
-          </div>
-        )}
+        <button className="add-manual" onClick={addManualGuest}>+</button>
       </div>
+      <p>Attendance Rate: {attendanceRate}%</p>
+      <ul className="guest-list">
+        {filteredGuests.map((guest, index) => (
+          <li
+            key={index}
+            className={\`guest-item \${guest.checkedIn ? "checked-in" : ""} \${guest.manual ? "manual" : ""}\`}
+            onClick={() => toggleCheckIn(index)}
+          >
+            {guest.firstName} {guest.lastName}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
