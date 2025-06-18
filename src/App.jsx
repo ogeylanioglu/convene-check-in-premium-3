@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import Papa from "papaparse";
 import logo from "./assets/C_logo.png";
@@ -7,59 +6,56 @@ import "./index.css";
 function App() {
   const [guestList, setGuestList] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [attendanceCount, setAttendanceCount] = useState(0);
+  const [showForm, setShowForm] = useState(false);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
-    if (!file) return;
-
     Papa.parse(file, {
       header: true,
       skipEmptyLines: true,
       complete: function (results) {
-        const formattedData = results.data.map((row) => ({
-          firstName: row.FirstName?.trim(),
-          lastName: row.LastName?.trim(),
-          email: row.Email?.trim(),
+        const cleaned = results.data.map((row) => ({
+          Name: row.Name?.trim(),
           checkedIn: false,
           manual: false
         }));
-        setGuestList(formattedData);
+        setGuestList(cleaned);
       },
     });
   };
 
-  const toggleCheckIn = (index) => {
-    const updatedList = [...guestList];
-    updatedList[index].checkedIn = !updatedList[index].checkedIn;
-    setGuestList(updatedList);
+  const handleCheckIn = (index) => {
+    const updatedGuests = [...guestList];
+    updatedGuests[index].checkedIn = !updatedGuests[index].checkedIn;
+    setGuestList(updatedGuests);
+    setAttendanceCount(updatedGuests.filter((g) => g.checkedIn).length);
   };
 
-  const addManualGuest = () => {
-    const firstName = prompt("Enter first name:");
-    const lastName = prompt("Enter last name:");
-    if (firstName && lastName) {
-      const newGuest = {
-        firstName,
-        lastName,
-        email: \`\${firstName.toLowerCase()}.\${lastName.toLowerCase()}@manual.com\`,
-        checkedIn: false,
-        manual: true
-      };
-      setGuestList([...guestList, newGuest]);
-    }
+  const handleAddGuest = () => {
+    if (!firstName.trim() || !lastName.trim()) return;
+    const newGuest = {
+      Name: `${firstName} ${lastName}`.trim(),
+      checkedIn: false,
+      manual: true,
+    };
+    setGuestList((prev) => [...prev, newGuest]);
+    setFirstName("");
+    setLastName("");
+    setShowForm(false);
   };
 
   const filteredGuests = guestList.filter((guest) =>
-    \`\${guest.firstName} \${guest.lastName}\`.toLowerCase().includes(searchTerm.toLowerCase())
+    guest.Name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  const checkedInCount = guestList.filter((g) => g.checkedIn).length;
-  const attendanceRate = guestList.length ? ((checkedInCount / guestList.length) * 100).toFixed(1) : 0;
 
   return (
     <div className="container">
       <img src={logo} alt="Convene Logo" className="logo" />
-      <h1>Guest Check-In</h1>
+      <h1 className="title">Guest Check-In</h1>
+
       <div className="controls">
         <input type="file" accept=".csv" onChange={handleFileUpload} />
         <input
@@ -68,20 +64,44 @@ function App() {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
-        <button className="add-manual" onClick={addManualGuest}>+</button>
+        <button className="plus-button" onClick={() => setShowForm(!showForm)}>
+          +
+        </button>
       </div>
-      <p>Attendance Rate: {attendanceRate}%</p>
-      <ul className="guest-list">
+
+      {showForm && (
+        <div className="manual-form">
+          <input
+            type="text"
+            placeholder="First Name"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+          />
+          <input
+            type="text"
+            placeholder="Last Name"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+          />
+          <button onClick={handleAddGuest}>Add Guest</button>
+        </div>
+      )}
+
+      <div className="attendance">
+        Attendance: {attendanceCount} / {guestList.length}
+      </div>
+
+      <div className="guest-list">
         {filteredGuests.map((guest, index) => (
-          <li
+          <div
             key={index}
-            className={\`guest-item \${guest.checkedIn ? "checked-in" : ""} \${guest.manual ? "manual" : ""}\`}
-            onClick={() => toggleCheckIn(index)}
+            className={`guest-card ${guest.checkedIn ? "checked" : ""} ${guest.manual ? "manual" : ""}`}
+            onClick={() => handleCheckIn(index)}
           >
-            {guest.firstName} {guest.lastName}
-          </li>
+            {guest.Name}
+          </div>
         ))}
-      </ul>
+      </div>
     </div>
   );
 }
