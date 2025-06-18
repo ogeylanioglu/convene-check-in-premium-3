@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Papa from "papaparse";
-import logo from "../assets/C_logo.png";
-import background from "../assets/background.jpg";
+import logo from "./assets/C_logo.png";
+import background from "./assets/background.jpg";
 
 function App() {
   const [guestList, setGuestList] = useState([]);
