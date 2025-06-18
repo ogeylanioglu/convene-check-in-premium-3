@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import Papa from "papaparse";
 import logo from "./assets/C_logo.png";
@@ -7,8 +8,6 @@ function App() {
   const [searchTerm, setSearchTerm] = useState("");
   const [checkedIn, setCheckedIn] = useState({});
   const [sortAsc, setSortAsc] = useState(true);
-  const [showModal, setShowModal] = useState(false);
-  const [manualName, setManualName] = useState("");
 
   useEffect(() => {
     const savedList = localStorage.getItem("guestList");
@@ -32,8 +31,7 @@ function App() {
       skipEmptyLines: true,
       complete: (results) => {
         const cleaned = results.data.map(row => ({
-          Name: row.Name?.trim(),
-          manual: false
+          Name: row.Name?.trim()
         })).filter(row => row.Name);
         setGuestList(cleaned);
         setCheckedIn({});
@@ -46,6 +44,7 @@ function App() {
   const toggleCheckIn = (name) => {
     const updated = { ...checkedIn, [name]: !checkedIn[name] };
     setCheckedIn(updated);
+    localStorage.setItem("checkedIn", JSON.stringify(updated));
   };
 
   const clearData = () => {
@@ -67,14 +66,6 @@ function App() {
   const total = guestList.length;
   const checked = Object.values(checkedIn).filter(Boolean).length;
   const percentage = total > 0 ? ((checked / total) * 100).toFixed(1) : 0;
-
-  const handleAddManual = () => {
-    if (!manualName.trim()) return;
-    const newGuest = { Name: manualName.trim(), manual: true };
-    setGuestList(prev => [...prev, newGuest]);
-    setManualName("");
-    setShowModal(false);
-  };
 
   return (
     <div className="wrapper">
@@ -108,20 +99,19 @@ function App() {
           <button onClick={() => setSortAsc((prev) => !prev)}>
             Sort {sortAsc ? "↓ Z-A" : "↑ A-Z"}
           </button>
-          <button onClick={() => setShowModal(true)}>＋</button>
         </div>
       </div>
 
       <div className="stats">
         <div className="stat-box">
-          Attendance Rate: {percentage}%
-          <div className="progress-container">
-            <div
-              className="progress-bar"
-              style={{ width: `${percentage}%` }}
-            ></div>
-          </div>
-        </div>
+  Attendance Rate: {percentage}%
+  <div className="progress-container">
+    <div
+      className="progress-bar"
+      style={{ width: `${percentage}%` }}
+    ></div>
+  </div>
+</div>
         <div className="stat-box">Checked in: {checked} / {total}</div>
       </div>
 
@@ -130,7 +120,7 @@ function App() {
           <div
             key={idx}
             onClick={() => toggleCheckIn(guest.Name)}
-            className={`guest-card ${checkedIn[guest.Name] ? "checked" : ""} ${guest.manual ? "manual" : ""}`}
+            className={`guest-card ${checkedIn[guest.Name] ? "checked" : ""}`}
           >
             <div className="guest-top">
               <span className="guest-name">{guest.Name}</span>
@@ -141,24 +131,6 @@ function App() {
           </div>
         ))}
       </div>
-
-      {showModal && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <h3>Add Guest</h3>
-            <input
-              type="text"
-              value={manualName}
-              onChange={(e) => setManualName(e.target.value)}
-              placeholder="Full name"
-            />
-            <div className="modal-buttons">
-              <button onClick={handleAddManual}>Add</button>
-              <button onClick={() => setShowModal(false)}>Cancel</button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
