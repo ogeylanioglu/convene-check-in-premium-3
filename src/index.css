@@ -264,51 +264,57 @@ button:focus-visible, input:focus-visible, label:focus-visible {
   background: #2563eb;
   transition: width 0.3s ease-in-out;
 }
-.add-btn {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  font-size: 32px;
-  background-color: #ffffff90;
+
+
+/* Manual "+" button */
+.add-button {
+  font-size: 24px;
+  font-weight: bold;
+  padding: 4px 12px;
+  margin-left: 12px;
   border: none;
-  border-radius: 50%;
-  width: 60px;
-  height: 60px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-.add-btn:hover {
-  background-color: #ffffffdd;
-}
-
-.modal {
-  position: fixed;
-  bottom: 0;
-  right: 0;
-  width: 100%;
-  max-width: 400px;
-  background: white;
-  padding: 20px;
-  box-shadow: -2px -2px 10px rgba(0, 0, 0, 0.2);
-  animation: slideFadeIn 0.4s ease-out forwards;
-}
-
-@keyframes slideFadeIn {
-  0% {
-    transform: translateY(100%);
-    opacity: 0;
-  }
-  100% {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.manual-tag {
-  background-color: #f39c12;
+  background-color: #4caf50;
   color: white;
-  padding: 2px 6px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.add-button:hover {
+  background-color: #388e3c;
+}
+
+/* Manual entry form */
+.manual-form {
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.manual-form input {
+  padding: 8px;
+  font-size: 14px;
+  border: 1px solid #ccc;
   border-radius: 4px;
-  font-size: 10px;
-  margin-left: 10px;
+}
+
+.manual-form button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.manual-form button:hover {
+  background-color: #0056b3;
+}
+
+/* Manually added guest highlight */
+.guest-card.manual {
+  border-left: 4px solid #ff9800;
+  background-color: #fff8e1;
 }
